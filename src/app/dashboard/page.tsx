@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { redirect } from 'next/navigation';
 import { Camera, Zap, Activity, Target, Flame, ChevronRight, Utensils, Droplet, Plus } from 'lucide-react';
 import Link from 'next/link';
 
@@ -54,6 +55,10 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  if (!user) {
+    redirect('/login');
+  }
+
   // 1. Extract dynamic targets from user metadata (set during onboarding)
   const meta = user?.user_metadata || {};
   const targetCalories = meta.target_calories || 2200;
@@ -75,10 +80,10 @@ export default async function DashboardPage() {
   const safeMeals = meals || [];
 
   // 3. Sum up consumed macros from the real database
-  const consumedCalories = safeMeals.reduce((sum, meal) => sum + meal.calories, 0);
-  const consumedProtein = safeMeals.reduce((sum, meal) => sum + meal.protein, 0);
-  const consumedCarbs = safeMeals.reduce((sum, meal) => sum + meal.carbs, 0);
-  const consumedFats = safeMeals.reduce((sum, meal) => sum + meal.fats, 0);
+  const consumedCalories = safeMeals.reduce((sum: number, meal: any) => sum + meal.calories, 0);
+  const consumedProtein = safeMeals.reduce((sum: number, meal: any) => sum + meal.protein, 0);
+  const consumedCarbs = safeMeals.reduce((sum: number, meal: any) => sum + meal.carbs, 0);
+  const consumedFats = safeMeals.reduce((sum: number, meal: any) => sum + meal.fats, 0);
 
   const caloriesLeft = Math.max(0, targetCalories - consumedCalories);
   const calPercent = targetCalories > 0 ? (consumedCalories / targetCalories) * 100 : 0;
@@ -109,7 +114,7 @@ export default async function DashboardPage() {
     .gte('created_at', startOfWeek.toISOString());
 
   const activeDays = new Set();
-  weeklyMeals?.forEach(meal => {
+  weeklyMeals?.forEach((meal: any) => {
     activeDays.add(new Date(meal.created_at).getDay());
   });
 
@@ -189,7 +194,7 @@ export default async function DashboardPage() {
                   <p className="text-xs text-gray-400">Scan your first meal to see it here.</p>
                 </div>
               ) : (
-                safeMeals.map((meal) => {
+                safeMeals.map((meal: any) => {
                   const mealTime = new Date(meal.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                   return (
                     <div key={meal.id} className="flex items-center gap-4 p-4 rounded-2xl bg-[#f8f9fa] border border-gray-100 group hover:border-[#8b5cf6]/30 transition-colors cursor-pointer">

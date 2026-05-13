@@ -1,9 +1,14 @@
 import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
 import { User, Mail, Calendar, Activity, ShieldCheck } from 'lucide-react'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
   const meta = user?.user_metadata || {}
 
   const joinedDate = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown'
