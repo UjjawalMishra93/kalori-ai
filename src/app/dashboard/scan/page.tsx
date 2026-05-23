@@ -16,6 +16,7 @@ type MealHistoryItem = {
   fats: number
   confidence: number
   created_at: string
+  image_url?: string | null
 }
 
 export default function ScanPage() {
@@ -79,7 +80,7 @@ export default function ScanPage() {
 
     const fileExt = file.name.split('.').pop()
     const fileName = `${user.id}/${Date.now()}.${fileExt}`
-    
+
     const { error: uploadError } = await supabase.storage
       .from('meal-images')
       .upload(fileName, file)
@@ -226,9 +227,8 @@ export default function ScanPage() {
               onDragLeave={(e) => { e.preventDefault(); setIsDragging(false) }}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`w-full h-[500px] border-2 border-dashed rounded-[40px] flex flex-col items-center justify-center p-8 transition-all cursor-pointer bg-white group ${
-                isDragging ? 'border-[#8b5cf6] bg-[#8b5cf6]/5 scale-[0.99]' : 'border-gray-200 hover:border-[#8b5cf6]/50 hover:bg-gray-50'
-              }`}
+              className={`w-full h-[500px] border-2 border-dashed rounded-[40px] flex flex-col items-center justify-center p-8 transition-all cursor-pointer bg-white group ${isDragging ? 'border-[#8b5cf6] bg-[#8b5cf6]/5 scale-[0.99]' : 'border-gray-200 hover:border-[#8b5cf6]/50 hover:bg-gray-50'
+                }`}
             >
               <div className="w-24 h-24 bg-gray-50 group-hover:bg-white rounded-full flex items-center justify-center mb-6 shadow-sm group-hover:shadow-md transition-all">
                 <Upload className={`w-10 h-10 ${isDragging ? 'text-[#8b5cf6]' : 'text-gray-400 group-hover:text-[#8b5cf6]'}`} />
@@ -255,10 +255,9 @@ export default function ScanPage() {
                 alt="Meal preview"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                className={`object-cover transition-all duration-1000 ${
-                  status === 'analyzing' ? 'scale-105 opacity-80 brightness-75' :
+                className={`object-cover transition-all duration-1000 ${status === 'analyzing' ? 'scale-105 opacity-80 brightness-75' :
                   status === 'complete' ? 'opacity-90' : 'opacity-100'
-                }`}
+                  }`}
               />
 
               {/* Scanning Laser */}
@@ -284,11 +283,10 @@ export default function ScanPage() {
                   )}
                   {status !== 'idle' && <div />}
 
-                  <div className={`backdrop-blur-md px-4 py-2 rounded-full border flex items-center gap-2 text-sm font-bold transition-all ${
-                    status === 'analyzing' ? 'bg-[#8b5cf6]/20 border-[#8b5cf6]/50 text-white' :
+                  <div className={`backdrop-blur-md px-4 py-2 rounded-full border flex items-center gap-2 text-sm font-bold transition-all ${status === 'analyzing' ? 'bg-[#8b5cf6]/20 border-[#8b5cf6]/50 text-white' :
                     status === 'complete' ? 'bg-green-500/20 border-green-500/50 text-white' :
-                    'bg-black/40 border-white/20 text-white'
-                  }`}>
+                      'bg-black/40 border-white/20 text-white'
+                    }`}>
                     {status === 'idle' && 'Ready to scan'}
                     {status === 'analyzing' && <><Loader2 className="w-4 h-4 animate-spin" /> Analysing with Gemini...</>}
                     {status === 'complete' && <><CheckCircle2 className="w-4 h-4 text-green-400" /> Saved to Dashboard</>}

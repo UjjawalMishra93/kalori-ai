@@ -3,14 +3,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight, ArrowDown, TrendingUp, Star, Camera, Activity, Target, Zap, ChevronRight, CheckCircle2, Lightbulb, Check, Flame } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }
 };
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
