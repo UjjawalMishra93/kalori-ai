@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { Zap, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { toast } from 'sonner'
 
 export default function LoginPage() {
@@ -59,13 +60,14 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen bg-[#f8f9fa] items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-        <div className="flex justify-center mb-8">
-          <Link href="/" className="w-12 h-12 bg-[#8b5cf6] rounded-xl flex items-center justify-center text-white hover:scale-105 transition-transform shadow-lg shadow-purple-500/30">
-            <Zap className="w-7 h-7 fill-current" />
+        <div className="flex flex-col items-center justify-center mb-10 gap-5">
+          <Link href="/" className="hover:scale-105 transition-transform">
+            <Image src="/images/logo.png" alt="Kalori AI Logo" width={112} height={112} className="w-28 h-28 object-contain drop-shadow-xl scale-125" />
           </Link>
+          <Image src="/images/kaloriai.png" alt="Kalori AI" width={280} height={80} className="h-20 w-auto object-contain scale-[1.8]" />
         </div>
         
-        <h2 className="text-2xl font-bold text-center text-[#1a1a1a] mb-8">Welcome to Kalori AI</h2>
+        <h2 className="text-xl font-medium text-center text-gray-500 mb-8">Welcome back</h2>
         
         <form className="flex flex-col gap-5">
           <div>

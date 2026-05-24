@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { User, Mail, Calendar, Activity, ShieldCheck } from 'lucide-react'
+import { User, Activity, ShieldCheck } from 'lucide-react'
+import ProfileEditorClient from './ProfileEditorClient'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -24,21 +25,7 @@ export default async function ProfilePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Avatar & Basic Info */}
-        <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm flex flex-col items-center text-center">
-          <div className="w-32 h-32 bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-xl shadow-purple-500/20 mb-6 border-4 border-white">
-            {user?.email?.substring(0, 2).toUpperCase()}
-          </div>
-          <h2 className="text-2xl font-bold text-[#1a1a1a] mb-1">{user?.email?.split('@')[0]}</h2>
-          <p className="text-gray-500 mb-6 flex items-center justify-center gap-2">
-            <Mail className="w-4 h-4" /> {user?.email}
-          </p>
-          <div className="w-full bg-[#f8f9fa] rounded-2xl p-4 flex items-center justify-between border border-gray-100">
-            <div className="flex items-center gap-3 text-sm font-medium text-gray-700">
-              <Calendar className="w-5 h-5 text-gray-400" /> Joined
-            </div>
-            <span className="font-bold text-[#1a1a1a]">{joinedDate}</span>
-          </div>
-        </div>
+        <ProfileEditorClient user={user} joinedDate={joinedDate} />
 
         {/* Right Column: Calculated Stats Overview */}
         <div className="lg:col-span-2 bg-white p-8 md:p-10 rounded-[40px] border border-gray-100 shadow-sm">

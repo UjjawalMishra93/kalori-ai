@@ -28,11 +28,9 @@ export default function Home() {
         transition={{ duration: 0.6 }}
         className="flex items-center justify-between px-6 md:px-12 py-6 max-w-7xl mx-auto w-full z-50"
       >
-        <div className="text-2xl font-bold tracking-tight text-black flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#8b5cf6] rounded-xl flex items-center justify-center text-white">
-            <Zap className="w-5 h-5 fill-current" />
-          </div>
-          Kalori AI
+        <div className="flex items-center gap-3">
+          <Image src="/images/logo.png" alt="Kalori AI Logo" width={56} height={56} className="w-14 h-14 object-contain scale-110" />
+          <Image src="/images/kaloriai.png" alt="Kalori AI" width={200} height={60} className="h-14 w-auto object-contain scale-[1.6]" />
         </div>
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600">
           <a href="#" className="text-black hover:text-[#8b5cf6] transition-colors">Features</a>
@@ -622,11 +620,9 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-100 py-16 px-6 md:px-12">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
           <div className="col-span-1 md:col-span-2">
-            <div className="text-2xl font-bold tracking-tight text-black flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-[#8b5cf6] rounded-xl flex items-center justify-center text-white">
-                <Zap className="w-5 h-5 fill-current" />
-              </div>
-              Kalori AI
+            <div className="flex items-center gap-3 mb-6">
+              <Image src="/images/logo.png" alt="Kalori AI Logo" width={56} height={56} className="w-14 h-14 object-contain scale-110" />
+              <Image src="/images/kaloriai.png" alt="Kalori AI" width={200} height={60} className="h-14 w-auto object-contain scale-[1.6]" />
             </div>
             <p className="text-gray-500 max-w-sm mb-6">
               The smartest, fastest way to track your macros. Powered by GPT-4o Vision and verified nutritional data.
