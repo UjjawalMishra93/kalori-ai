@@ -222,7 +222,7 @@ export default function ReportsDashboardClient({
                 </div>
               </div>
               <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <LineChart data={caloriesData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                     <XAxis 
@@ -277,7 +277,7 @@ export default function ReportsDashboardClient({
               </div>
               <div className="flex-1 min-h-[250px] relative flex items-center justify-center">
                 {macroPieData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <PieChart>
                       <Pie
                         data={macroPieData}
@@ -325,7 +325,7 @@ export default function ReportsDashboardClient({
                 <p className="text-xs text-gray-500 mt-1">Last 7 days vs Previous 7 days</p>
               </div>
               <div className="flex-1 min-h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <BarChart data={macroCompareData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                     <XAxis 
@@ -362,7 +362,7 @@ export default function ReportsDashboardClient({
                 </div>
               </div>
               <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <BarChart data={frequencyData} margin={{ top: 5, right: 0, bottom: 5, left: -30 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                     <XAxis 
