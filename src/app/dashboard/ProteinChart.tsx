@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { useRef } from 'react'
 import { TrendingUp } from 'lucide-react'
 
 type DayBar = {
@@ -13,62 +12,20 @@ type DayBar = {
   isToday: boolean
 }
 
-export default function ProteinChart({ targetProtein, userId }: { targetProtein: number; userId: string }) {
-  const supabase = createClient()
-  const [bars, setBars] = useState<DayBar[]>([])
-  const [loading, setLoading] = useState(true)
+export default function ProteinChart({
+  targetProtein,
+  initialBars = [],
+}: {
+  targetProtein: number
+  userId: string
+  initialBars?: DayBar[]
+}) {
+  // bars are pre-computed server-side — no client fetch needed on mount
+  const bars = initialBars
 
-  const build7Days = useCallback(async () => {
-    // Build last-7-days date range
-    const days: DayBar[] = []
-    const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-    const since = new Date()
-    since.setDate(since.getDate() - 6)
-    since.setHours(0, 0, 0, 0)
-
-    const { data } = await supabase
-      .from('meal_items')
-      .select('protein, created_at')
-      .eq('user_id', userId)
-      .gte('created_at', since.toISOString())
-
-    // Aggregate protein per calendar day
-    const byDay: Record<string, number> = {}
-    ;(data || []).forEach(row => {
-      const key = new Date(row.created_at).toDateString()
-      byDay[key] = (byDay[key] || 0) + (row.protein || 0)
-    })
-
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date()
-      d.setDate(d.getDate() - i)
-      d.setHours(0, 0, 0, 0)
-      const key = d.toDateString()
-      const consumed = byDay[key] || 0
-      const pct = targetProtein > 0 ? Math.min((consumed / targetProtein) * 100, 100) : 0
-
-      days.push({
-        label: dayLabels[d.getDay()],
-        dateStr: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        pct,
-        consumed,
-        target: targetProtein,
-        isToday: i === 0,
-      })
-    }
-
-    setBars(days)
-    setLoading(false)
-  }, [supabase, userId, targetProtein])
-
-  useEffect(() => { build7Days() }, [build7Days])
-
-  const avgPct = bars.length ? Math.round(bars.reduce((s, b) => s + b.pct, 0) / bars.length) : 0
-
-  if (loading) {
-    return <div className="bg-white p-8 rounded-[32px] border border-gray-100 h-56 animate-pulse" />
-  }
+  const avgPct = bars.length
+    ? Math.round(bars.reduce((s, b) => s + b.pct, 0) / bars.length)
+    : 0
 
   return (
     <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">

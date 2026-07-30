@@ -61,7 +61,11 @@ export default function ScanPage() {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const supabase = createClient()
+  // Memoize client — never recreate on render
+  const supabaseRef = useRef(createClient())
+  const supabase = supabaseRef.current
+  // Cache user — one auth call total, not one per fetch/save/upload
+  const userRef = useRef<{ id: string } | null>(null)
   const PAGE_SIZE = 20
 
   // ── Debounce search ────────────────────────────────────────────────────────
@@ -71,9 +75,17 @@ export default function ScanPage() {
     return () => { if (debounceTimer.current) clearTimeout(debounceTimer.current) }
   }, [histSearch])
 
+  // ── Fetch user once, cache in ref ────────────────────────────────────────
+  const getUser = useCallback(async () => {
+    if (userRef.current) return userRef.current
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) userRef.current = user
+    return user
+  }, [supabase])
+
   // ── Fetch history ──────────────────────────────────────────────────────────
   const fetchPage = useCallback(async (from: number, search: string) => {
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getUser()
     if (!user) return []
     let q = supabase
       .from('meal_items')
@@ -84,7 +96,7 @@ export default function ScanPage() {
     if (search.trim()) q = q.ilike('food_name', `%${search.trim()}%`)
     const { data } = await q
     return data || []
-  }, [supabase, PAGE_SIZE])
+  }, [supabase, getUser, PAGE_SIZE])
 
   const loadInitial = useCallback(async () => {
     setLoadingHistory(true)
@@ -177,7 +189,7 @@ export default function ScanPage() {
   }
 
   const uploadImage = async (file: File) => {
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getUser()
     if (!user) return null
 
     const fileExt = file.name.split('.').pop()
@@ -201,7 +213,7 @@ export default function ScanPage() {
   }
 
   const saveMealToDb = async (mealData: any) => {
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getUser()
     if (!user) return
 
     // 1. Upload image to Supabase Storage

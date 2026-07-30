@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { Camera, Zap, Plus, Utensils } from 'lucide-react'
+import { Camera, Plus, Utensils } from 'lucide-react'
 import Link from 'next/link'
 
 type Meal = {
@@ -51,16 +51,21 @@ export default function MacroDashboardClient({
   targetCarbs,
   targetFats,
   userId,
+  initialMeals = [],
 }: {
   targetCalories: number
   targetProtein: number
   targetCarbs: number
   targetFats: number
   userId: string
+  initialMeals?: Meal[]
 }) {
-  const supabase = createClient()
-  const [meals, setMeals] = useState<Meal[]>([])
-  const [loading, setLoading] = useState(true)
+  // Memoize supabase client — never recreate on render
+  const supabaseRef = useRef(createClient())
+  const supabase = supabaseRef.current
+
+  // Start with server-prefetched data — no loading spinner needed
+  const [meals, setMeals] = useState<Meal[]>(initialMeals)
 
   const fetchMeals = useCallback(async () => {
     const today = new Date()
@@ -71,13 +76,11 @@ export default function MacroDashboardClient({
       .eq('user_id', userId)
       .gte('created_at', today.toISOString())
       .order('created_at', { ascending: false })
-    setMeals(data || [])
-    setLoading(false)
+    if (data) setMeals(data)
   }, [supabase, userId])
 
   useEffect(() => {
-    fetchMeals()
-    // Realtime subscription — updates macro rings instantly when a new meal is saved
+    // Subscribe to realtime — updates macro rings instantly when a new meal is saved
     const channel = supabase
       .channel('meal_items_realtime')
       .on('postgres_changes', {
@@ -100,15 +103,6 @@ export default function MacroDashboardClient({
   const caloriesLeft = Math.max(0, targetCalories - consumedCalories)
   const calPercent = targetCalories > 0 ? (consumedCalories / targetCalories) * 100 : 0
   const isOverBudget = consumedCalories > targetCalories
-
-  if (loading) {
-    return (
-      <div className="lg:col-span-2 flex flex-col gap-6">
-        <div className="bg-white p-8 rounded-[32px] border border-gray-100 h-64 animate-pulse" />
-        <div className="bg-white p-8 rounded-[32px] border border-gray-100 h-48 animate-pulse" />
-      </div>
-    )
-  }
 
   return (
     <div className="lg:col-span-2 flex flex-col gap-6">

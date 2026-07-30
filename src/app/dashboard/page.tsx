@@ -6,7 +6,37 @@ import MacroDashboardClient from './MacroDashboardClient';
 import HydrationTracker from './HydrationTracker';
 import ProteinChart from './ProteinChart';
 
+// Helper to build 7-day protein bars on the server
+function build7DayBars(
+  mealRows: { protein: number; created_at: string }[],
+  targetProtein: number
+) {
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const byDay: Record<string, number> = {}
+  mealRows.forEach(row => {
+    const key = new Date(row.created_at).toDateString()
+    byDay[key] = (byDay[key] || 0) + (row.protein || 0)
+  })
 
+  const bars = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    d.setHours(0, 0, 0, 0)
+    const key = d.toDateString()
+    const consumed = byDay[key] || 0
+    const pct = targetProtein > 0 ? Math.min((consumed / targetProtein) * 100, 100) : 0
+    bars.push({
+      label: dayLabels[d.getDay()],
+      dateStr: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      pct,
+      consumed,
+      target: targetProtein,
+      isToday: i === 0,
+    })
+  }
+  return bars
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -16,7 +46,7 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  // 1. Extract dynamic targets from user metadata (set during onboarding)
+  // Extract dynamic targets from user metadata (set during onboarding)
   const meta = user?.user_metadata || {};
   const targetCalories = meta.target_calories || 2200;
   const targetProtein = meta.target_protein || 150;
@@ -25,31 +55,73 @@ export default async function DashboardPage() {
 
   const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-  // 4. Fetch User Stats (Streaks)
-  const { data: userStats } = await supabase
-    .from('user_stats')
-    .select('current_streak')
-    .eq('user_id', user.id)
-    .single();
+  // ── Date ranges ────────────────────────────────────────────────────────────
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
-  const currentStreak = userStats?.current_streak || 0;
-
-  // 5. Calculate Weekly Activity (for the checkmarks)
   const startOfWeek = new Date();
-  const dayOfWeek = startOfWeek.getDay(); // 0 is Sunday, 1 is Monday...
-  // Adjust to Monday as start of week
+  const dayOfWeek = startOfWeek.getDay();
   const diffToMonday = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
   startOfWeek.setDate(diffToMonday);
   startOfWeek.setHours(0, 0, 0, 0);
 
-  const { data: weeklyMeals } = await supabase
-    .from('meal_items')
-    .select('created_at')
-    .eq('user_id', user.id)
-    .gte('created_at', startOfWeek.toISOString());
+  const since7Days = new Date();
+  since7Days.setDate(since7Days.getDate() - 6);
+  since7Days.setHours(0, 0, 0, 0);
 
-  const activeDays = new Set();
-  weeklyMeals?.forEach((meal: any) => {
+  // ── Run ALL DB queries in parallel — the single biggest performance win ────
+  const [
+    { data: userStats },
+    { data: todayMeals },
+    { data: weeklyMeals },
+    { data: hydrationData },
+    { data: proteinRows },
+  ] = await Promise.all([
+    // 1. Streak
+    supabase
+      .from('user_stats')
+      .select('current_streak')
+      .eq('user_id', user.id)
+      .single(),
+
+    // 2. Today's meals for MacroDashboardClient
+    supabase
+      .from('meal_items')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('created_at', todayStart.toISOString())
+      .order('created_at', { ascending: false }),
+
+    // 3. Weekly activity for streak checkmarks
+    supabase
+      .from('meal_items')
+      .select('created_at')
+      .eq('user_id', user.id)
+      .gte('created_at', startOfWeek.toISOString()),
+
+    // 4. Today's hydration for HydrationTracker
+    supabase
+      .from('hydration_logs')
+      .select('amount_ml')
+      .eq('user_id', user.id)
+      .eq('log_date', todayStart.toISOString().split('T')[0])
+      .single(),
+
+    // 5. 7-day protein data for ProteinChart
+    supabase
+      .from('meal_items')
+      .select('protein, created_at')
+      .eq('user_id', user.id)
+      .gte('created_at', since7Days.toISOString()),
+  ]);
+
+  // ── Derive UI state from fetched data ──────────────────────────────────────
+  const currentStreak = userStats?.current_streak || 0;
+  const initialIntake = hydrationData?.amount_ml ?? 0;
+  const initialBars = build7DayBars(proteinRows || [], targetProtein);
+
+  const activeDays = new Set<number>();
+  weeklyMeals?.forEach((meal: { created_at: string }) => {
     activeDays.add(new Date(meal.created_at).getDay());
   });
 
@@ -72,13 +144,14 @@ export default async function DashboardPage() {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left Column: Macro Dashboard — Realtime Client Component */}
+        {/* Left Column: Macro Dashboard — passes server-prefetched meals */}
         <MacroDashboardClient
           targetCalories={targetCalories}
           targetProtein={targetProtein}
           targetCarbs={targetCarbs}
           targetFats={targetFats}
           userId={user.id}
+          initialMeals={todayMeals || []}
         />
 
         {/* Right Column: Insights & Streaks */}
@@ -125,11 +198,15 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Hydration Tracker — Connected to DB */}
-          <HydrationTracker userId={user.id} />
+          {/* Hydration Tracker — fed with server-prefetched initialIntake */}
+          <HydrationTracker userId={user.id} initialIntake={initialIntake} />
 
-          {/* 7-day Protein Hit Rate Chart */}
-          <ProteinChart targetProtein={targetProtein} userId={user.id} />
+          {/* 7-day Protein Chart — fed with server-computed bars */}
+          <ProteinChart
+            targetProtein={targetProtein}
+            userId={user.id}
+            initialBars={initialBars}
+          />
 
           {/* Setup Profile Prompt */}
           <div className="bg-[#8b5cf6]/5 border border-[#8b5cf6]/20 p-6 rounded-[32px]">

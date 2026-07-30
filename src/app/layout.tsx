@@ -6,6 +6,8 @@ import "./globals.css";
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
+  display: "swap",   // show fallback font immediately — no invisible text
+  preload: true,
 });
 
 export const metadata: Metadata = {

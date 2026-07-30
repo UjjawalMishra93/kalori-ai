@@ -29,15 +29,15 @@ export default function Home() {
         className="flex items-center justify-between px-6 md:px-12 py-6 max-w-7xl mx-auto w-full z-50"
       >
         <div className="flex items-center gap-3">
-          <Image src="/images/logo.png" alt="Kalori AI Logo" width={56} height={56} className="w-14 h-14 object-contain scale-110" />
-          <Image src="/images/kaloriai.png" alt="Kalori AI" width={200} height={60} className="h-14 w-auto object-contain scale-[1.6]" />
+          <Image src="/images/logo.png" alt="Kalori AI Logo" width={56} height={56} priority className="w-14 h-14 object-contain scale-110" />
+          <Image src="/images/kaloriai.png" alt="Kalori AI" width={200} height={60} priority className="h-14 w-auto object-contain scale-[1.6]" />
         </div>
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600">
           <a href="#" className="text-black hover:text-[#8b5cf6] transition-colors">Features</a>
           <a href="#" className="hover:text-[#8b5cf6] transition-colors">How it works</a>
           <a href="#" className="hover:text-[#8b5cf6] transition-colors">Testimonials</a>
         </div>
-        <Link href="/login" className="bg-[#1a1a1a] hover:bg-[#8b5cf6] text-white px-6 py-2.5 rounded-xl font-medium transition-colors">
+        <Link href="/login" prefetch={true} className="bg-[#1a1a1a] hover:bg-[#8b5cf6] text-white px-6 py-2.5 rounded-xl font-medium transition-colors">
           Log In
         </Link>
       </motion.nav>
@@ -119,6 +119,7 @@ export default function Home() {
               src="/images/food_scan.png" 
               alt="AI Food Scanning" 
               fill 
+              priority
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
             />

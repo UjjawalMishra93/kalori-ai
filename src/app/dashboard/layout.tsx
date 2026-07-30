@@ -2,9 +2,11 @@ import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Suspense } from 'react';
 import { LogOut, Zap, User } from 'lucide-react';
 import { signOut } from './actions';
 import { SidebarNavigation } from './SidebarNavigation';
+import DashboardLoading from './loading';
 
 export default async function DashboardLayout({
   children,
@@ -76,7 +78,9 @@ export default async function DashboardLayout({
         </div>
         
         <div className="p-6 md:p-10 w-full">
-          {children}
+          <Suspense fallback={<DashboardLoading />}>
+            {children}
+          </Suspense>
         </div>
       </main>
     </div>
